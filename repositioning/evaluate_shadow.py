@@ -27,10 +27,9 @@ def compare_textures():
             bpy.app.tempdir + shad_name+".png"))
 
         result = sewar.full_ref.rmse(ref_image, shad_image)
-        # result = "Testing"
         return(result)
     else:
-        return("Please, set a reference image, and bake the shadows on your object")
+        return("Please, set a reference")
 
 
 class OBJECT_OT_evaluate_shadow(bpy.types.Operator):
