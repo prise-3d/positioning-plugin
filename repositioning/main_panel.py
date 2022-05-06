@@ -22,10 +22,17 @@ class OBJECT_PT_shadow_comparator_panel (bpy.types.Panel):
             box = layout.box()
             box.label(text="Manage textures")
 
-            ref_node = obj.name+"_"+"ref_image"
-            shad_node = obj.name+"_"+"shadow_image"
+            ref_node = obj.name_full+"_"+"ref_image"
+            shad_node = obj.name_full+"_"+"shadow_image"
 
-            if obj.name not in bpy.data.materials:
+            result_box = layout.box()
+            result_box.label(text="Comparison actions")
+            result_box.operator(
+                'object.rotate_target', text='Select object as target').action = 'Select_target'
+            result_box.operator(
+                'object.rotate_target', text='Rotate targeted object').action = 'Rotate_object'
+
+            if obj.name_full not in bpy.data.materials:
                 box.operator('object.manage_textures',
                              text='Add baking dedicated material').action = 'Add_material'
             else:
@@ -35,22 +42,23 @@ class OBJECT_PT_shadow_comparator_panel (bpy.types.Panel):
                 save_box = box.box()
                 save_box.label(text="Save textures in temp")
 
-                if ref_node in bpy.data.materials[obj.name].node_tree.nodes:
+                if ref_node in bpy.data.materials[obj.name_full].node_tree.nodes:
                     tex_box.operator('object.manage_textures',
                                      text='Draw on reference').action = 'Draw_reference'
                     save_box.operator('object.manage_textures',
                                       text='Save drawn shadow').action = 'Save_reference'
 
-                if shad_node in bpy.data.materials[obj.name].node_tree.nodes:
+                if shad_node in bpy.data.materials[obj.name_full].node_tree.nodes:
                     save_box.operator('object.manage_textures',
                                       text='Save baked shadow').action = 'Save_baked'
-                result_box = layout.box()
-                result_box.label(text="Compare")
+
                 result_box.operator('object.evaluate_shadow',
                                     text='Compare shadows').action = 'Compare'
                 result_box.label(text="Comparison result")
                 score = result_box.box()
-                score.label(text=bpy.app.driver_namespace["shad_comparison"])
+                if "shad_comparison" in bpy.app.driver_namespace:
+                    score.label(
+                        text=bpy.app.driver_namespace["shad_comparison"])
 
 
 def register():

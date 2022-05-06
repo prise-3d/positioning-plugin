@@ -2,31 +2,31 @@
 import bpy
 
 
-import sewar
-import numpy
-import PIL
+from sewar.full_ref import rmse
+from numpy import asarray
+from PIL import Image
 
 from . manage_textures import bake_shadow, save_image
 
 
 def compare_textures():
     object = bpy.context.active_object
-    object_material = bpy.data.materials[object.name]
+    object_material = bpy.data.materials[object.name_full]
 
-    ref_name = object.name+"_"+"ref_image"
-    shad_name = object.name+"_"+"shadow_image"
+    ref_name = object.name_full+"_"+"ref_image"
+    shad_name = object.name_full+"_"+"shadow_image"
 
-    if ref_name in bpy.data.materials[object.name].node_tree.nodes:
+    if ref_name in bpy.data.materials[object.name_full].node_tree.nodes:
 
         save_image(object_material.node_tree.nodes[ref_name])
         save_image(bake_shadow())
 
-        ref_image = numpy.asarray(PIL.Image.open(
+        ref_image = asarray(Image.open(
             bpy.app.tempdir + ref_name+".png"))
-        shad_image = numpy.asarray(PIL.Image.open(
+        shad_image = asarray(Image.open(
             bpy.app.tempdir + shad_name+".png"))
 
-        result = sewar.full_ref.rmse(ref_image, shad_image)
+        result = rmse(ref_image, shad_image)
         return(result)
     else:
         return("Please, set a reference")
