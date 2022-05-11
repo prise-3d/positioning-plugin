@@ -2,12 +2,11 @@
 import bpy
 
 from math import radians
-from sewar.full_ref import rmse
 from numpy import asarray
 from PIL import Image
 
 from . manage_textures import bake_shadow, save_image
-from . evaluate_shadow import compare_textures
+from . evaluate_shadow import compare_textures, rmse
 
 global target
 target = None
@@ -20,9 +19,9 @@ def select_target_object():
     return (bpy.context.active_object)
 
 
-def rotate_object(target):
-    target.rotation_euler[2] += radians(10)
-    return("Rotation of target")
+def rotate_object(target, degree=180):
+    target.rotation_euler[2] += radians(degree)
+    return(str(compare_textures()))
 
 
 class OBJECT_OT_rotate_target(bpy.types.Operator):

@@ -1,12 +1,14 @@
 
 import bpy
 
-
-from sewar.full_ref import rmse
-from numpy import asarray
+import numpy as np
 from PIL import Image
 
 from . manage_textures import bake_shadow, save_image
+
+
+def rmse(prediction, target):
+    return np.sqrt(((prediction-target)**2).mean())
 
 
 def compare_textures():
@@ -21,9 +23,9 @@ def compare_textures():
         save_image(object_material.node_tree.nodes[ref_name])
         save_image(bake_shadow())
 
-        ref_image = asarray(Image.open(
+        ref_image = np.asarray(Image.open(
             bpy.app.tempdir + ref_name+".png"))
-        shad_image = asarray(Image.open(
+        shad_image = np.asarray(Image.open(
             bpy.app.tempdir + shad_name+".png"))
 
         result = rmse(ref_image, shad_image)
