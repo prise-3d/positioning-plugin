@@ -2,12 +2,11 @@
 import bpy
 
 from math import radians
-from sewar.full_ref import rmse
-from numpy import asarray
+import numpy as np
 from PIL import Image
 
 from . manage_textures import bake_shadow, save_image
-from . evaluate_shadow import compare_textures
+from . evaluate_shadow import compare_textures, rmse
 
 global target
 target = None
@@ -19,10 +18,39 @@ target = None
 def select_target_object():
     return (bpy.context.active_object)
 
+# This version uses compare_textures(), which means everytime we evaluate, the reference is saved and opened again, even though it doesn't change.
 
-def rotate_object(target):
-    target.rotation_euler[2] += radians(10)
-    return("Rotation of target")
+
+def rotate_object(target, degree=360):
+    if abs(degree) > 1:
+        initial_diff = compare_textures()
+        degree_1 = degree/2
+        degree_2 = -degree_1
+        target.rotation_euler[2] += radians(degree_1)
+        diff_1 = compare_textures()
+
+        target.rotation_euler[2] -= radians(degree_1)
+
+        target.rotation_euler[2] += radians(degree_2)
+        diff_2 = compare_textures()
+
+        target.rotation_euler[2] -= radians(degree_2)
+
+        if initial_diff < diff_1 and initial_diff < diff_2:
+
+            if diff_1 < diff_2:
+                return(rotate_object(target, degree_1))
+            else:
+                return(rotate_object(target, degree_2))
+
+        elif diff_1 <= diff_2:
+            target.rotation_euler[2] += radians(degree_1)
+            return(rotate_object(target, degree_1))
+        else:
+            target.rotation_euler[2] += radians(degree_2)
+            return(rotate_object(target, degree_2))
+    else:
+        return(str(compare_textures()))
 
 
 class OBJECT_OT_rotate_target(bpy.types.Operator):
