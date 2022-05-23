@@ -21,36 +21,61 @@ def select_target_object():
 # This version uses compare_textures(), which means everytime we evaluate, the reference is saved and opened again, even though it doesn't change.
 
 
-def rotate_object(target, degree=360):
-    if abs(degree) > 1:
-        initial_diff = compare_textures()
+def rotate_object(target, degree=1, count=0, res=64):
+    if abs(degree) > 0.02:
+        initial_diff = compare_textures(res)
         degree_1 = degree/2
         degree_2 = -degree_1
         target.rotation_euler[2] += radians(degree_1)
-        diff_1 = compare_textures()
+        diff_1 = compare_textures(res)
 
         target.rotation_euler[2] -= radians(degree_1)
 
         target.rotation_euler[2] += radians(degree_2)
-        diff_2 = compare_textures()
+        diff_2 = compare_textures(res)
 
         target.rotation_euler[2] -= radians(degree_2)
+
+        if res < 1024:
+            next_res = res*2
+        else:
+            next_res = res
 
         if initial_diff < diff_1 and initial_diff < diff_2:
 
             if diff_1 < diff_2:
-                return(rotate_object(target, degree_1))
+                return(rotate_object(target, degree_1, count+3, next_res))
             else:
-                return(rotate_object(target, degree_2))
+                return(rotate_object(target, degree_2, count+3, next_res))
 
         elif diff_1 <= diff_2:
             target.rotation_euler[2] += radians(degree_1)
-            return(rotate_object(target, degree_1))
+            return(rotate_object(target, degree_1, count+3, next_res))
         else:
             target.rotation_euler[2] += radians(degree_2)
-            return(rotate_object(target, degree_2))
+            return(rotate_object(target, degree_2, count+3, next_res))
     else:
-        return(str(compare_textures()))
+        bpy.app.driver_namespace["iterations"] = str(count)
+        return(str(compare_textures(res)))
+
+
+def full_rotation(target):
+    scores = []
+    min = 255
+    min_position = target.rotation_euler[2]
+
+    for degree in range(360):
+        target.rotation_euler[2] = radians(degree)
+        scores.append(compare_textures(32))
+
+    for position in range(len(scores)):
+        if scores[position] <= min:
+            min = scores[position]
+            min_position = position
+
+    target.rotation_euler[2] = radians(min_position)
+    bpy.app.driver_namespace["iterations"] = "360"
+    return(str(compare_textures(32)))
 
 
 class OBJECT_OT_rotate_target(bpy.types.Operator):
@@ -73,6 +98,8 @@ class OBJECT_OT_rotate_target(bpy.types.Operator):
             target = select_target_object()
         elif self.action == 'Rotate_object':
             if target != None:
+                bpy.app.driver_namespace["shad_comparison"] = full_rotation(
+                    target)
                 bpy.app.driver_namespace["shad_comparison"] = rotate_object(
                     target)
 
