@@ -29,7 +29,7 @@ def add_object_material():
         object.data.materials.append(object_material)
 
 
-def new_blank_image(img_name="tex_image"):
+def new_blank_image(img_name="tex_image", res=1024):
 
     object = bpy.context.active_object
     name = object.name_full+"_"+img_name
@@ -40,11 +40,14 @@ def new_blank_image(img_name="tex_image"):
         image = object_material.node_tree.nodes.new('ShaderNodeTexImage')
         image.name = name
         image.image = bpy.data.images.new(
-            name=name, width=1024, height=1024, alpha=True)
+            name=name, width=res, height=res, alpha=True)
 
     else:
         print("Node already exist")
         image = object_material.node_tree.nodes[name]
+        bpy.data.images[name].source = 'GENERATED'
+        bpy.data.images[name].generated_width = res
+        bpy.data.images[name].generated_height = res
 
     image.image.generated_color = (1, 1, 1, 1)  # turn image white
     return(image)
@@ -74,20 +77,20 @@ def save_image(node):
     bpy.data.images[node.image.name_full].save()
 
 
-def bake_shadow():
+def bake_shadow(res=1024):
 
     global baked_image
 
     object = bpy.context.active_object
     object_material = bpy.data.materials[object.name_full]
 
-    blank_base = new_blank_image("blank")
+    blank_base = new_blank_image("blank", res)
 
     bsdf = object_material.node_tree.nodes["Principled BSDF"]
     object_material.node_tree.links.new(
         bsdf.inputs['Base Color'], blank_base.outputs['Color'])
 
-    baked_image = new_blank_image("shadow_image")
+    baked_image = new_blank_image("shadow_image", res)
     object_material.node_tree.nodes.active = object_material.node_tree.nodes[
         baked_image.name]
     bpy.context.scene.render.engine = 'CYCLES'

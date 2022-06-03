@@ -11,22 +11,34 @@ def rmse(prediction, target):
     return np.sqrt(((prediction.astype(np.float64)-target.astype(np.float64))**2).mean())
 
 
-def compare_textures():
+def retrieve_reference():
     object = bpy.context.active_object
     object_material = bpy.data.materials[object.name_full]
+    ref_name = object.name_full+"_"+"ref_image"
+    save_image(object_material.node_tree.nodes[ref_name])
 
+
+def select_target_object():
+    return (bpy.context.active_object)
+
+
+def compare_textures(res=1024):
+    object = bpy.context.active_object
     ref_name = object.name_full+"_"+"ref_image"
     shad_name = object.name_full+"_"+"shadow_image"
 
     if ref_name in bpy.data.materials[object.name_full].node_tree.nodes:
 
-        save_image(object_material.node_tree.nodes[ref_name])
-        save_image(bake_shadow())
+        ref_image_name = bpy.data.materials[object.name_full].node_tree.nodes[ref_name].image.name
+
+        save_image(bake_shadow(res))
+
+        shad_image_name = bpy.data.materials[object.name_full].node_tree.nodes[shad_name].image.name
 
         ref_image = np.asarray(Image.open(
-            bpy.app.tempdir + ref_name+".png"))
+            bpy.app.tempdir + ref_image_name+".png").resize((res, res)))
         shad_image = np.asarray(Image.open(
-            bpy.app.tempdir + shad_name+".png"))
+            bpy.app.tempdir + shad_image_name+".png"))
 
         result = rmse(ref_image, shad_image)
         return(result)
@@ -52,6 +64,7 @@ class OBJECT_OT_evaluate_shadow(bpy.types.Operator):
 
     def execute(self, context):
         if self.action == 'Compare':
+            retrieve_reference()
             self.evaluation_result = str(compare_textures())
 
             # Result of RMSE operation is put in Blender's global dictionnary driver_namespace so that we can access it in any other operator
