@@ -28,7 +28,7 @@ from . import add_plane, main_panel, manage_textures, evaluate_shadow, rotate_ta
 bl_info = {
     "name": "Set a repositioning environment",
     "author": "Florence Constans",
-    "version": (0, 0, 6),
+    "version": (0, 0, 7),
     "blender": (2, 80, 0),
     "location": "View3D > Side Bar",
     "description": "Adds a plane to bake on, or add material and textures on already existing objects to bake shadows on ",
